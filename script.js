@@ -8,7 +8,9 @@ const tableTarefa = document.querySelector("#tarefas");
 function verificarCampos() {
   if (inputTarefa.value.trim() && selectPrioridade.value !== "") {
     btnAdicionar.removeAttribute("disabled");
-  } 
+  } else {
+    btnAdicionar.setAttribute("disabled", "disabled");
+  }
 }
 
 inputTarefa.addEventListener("input", verificarCampos);
