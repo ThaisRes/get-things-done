@@ -18,50 +18,68 @@ selectPrioridade.addEventListener("change", verificarCampos);
 btnAdicionar.addEventListener("click", (e) => {
   e.preventDefault(); 
 
-  const valorTarefa = inputTarefa.value.trim();
-  const valorPrioridade = selectPrioridade.value;
+  const novaTarefa = {
+    valorTarefa: inputTarefa.value.trim(),
+    valorPrioridade: selectPrioridade.value,
+  };
   
-  //Badges Prioridades
-  const badgeClass = function () {
-    if (valorPrioridade === "Alta") {
+  //Adicionar no local Storage
+  const tarefas = JSON.parse(localStorage.getItem("listaTarefas")) || [];
+  tarefas.push(novaTarefa);
+  localStorage.setItem("listaTarefas", JSON.stringify(tarefas));
+
+  //atualizar tabela
+  adicionarTarefaNaTabela(novaTarefa);
+
+  // Limpa os campos e desabilita o botão
+  inputTarefa.value = "";
+  selectPrioridade.value = "";
+  btnAdicionar.disabled = true;
+});
+
+//carregar tarefas salar ao iniciar
+window.addEventListener("DOMContentLoaded", () => {
+  const tarefas = JSON.parse(localStorage.getItem("listaTarefas")) || [];
+  tarefas.forEach(adicionarTarefaNaTabela);
+});
+
+//Badges Prioridades
+  const badgeClass = function (prioridade) {
+    if (prioridade === "Alta") { 
       return "danger";
-    } else if (valorPrioridade === "Média") {
+    } else if (prioridade === "Média") {
       return "warning text-dark";
     } else {
       return "success";
     }
   };
 
-  //Tabela Tarefas
-  if (valorTarefa && valorPrioridade) {
-    tableTarefa.innerHTML += `
-      <tr>
-        <td>${valorTarefa}</td>
-        <td><span class="badge rounded-pill px-3 py-2 bg-${badgeClass()} fs-6">${valorPrioridade}</span></td>
-        <td>
-          <span class="badge rounded-pill px-3 py-2 bg-info fs-6 concluir" style="cursor: pointer;" role="button" tabindex="0">Concluir</span>
-        </td>
-      </tr>
-    `;
+//função para adicionar linha na tabela
+function adicionarTarefaNaTabela(tarefa) {
+  const linha = document.createElement("tr");
 
-    // Limpa os campos e desabilita o botão
-    inputTarefa.value = "";
-    selectPrioridade.value = "";
-    btnAdicionar.disabled = true;
-  }
-});
+  linha.innerHTML =`
+    <td>${tarefa.valorTarefa}</td>
+    <td>
+      <span class="badge rounded-pill px-3 py-2 bg-${badgeClass(tarefa.valorPrioridade)} fs-6">${tarefa.valorPrioridade}</span></td>
+    <td>
+      <span class="badge rounded-pill px-3 py-2 bg-primary-subtle text-primary fs-6 badgeConcluir" style="cursor: pointer;" role="button" tabindex="0">Concluir</span>
+    </td>
+  `;
 
 //evento para a badge "Concluir"
-tableTarefa.addEventListener("click", (e) => {
-  if (e.target.classList.contains("concluir")) {
-    e.target.closest("tr").remove();
-  }
+const badgeConcluir = linha.querySelector(".badgeConcluir");
+badgeConcluir.addEventListener("click", () => {
+  linha.remove();
+  removerTarefaStorage(tarefa.valorTarefa);
 });
 
+tableTarefa.appendChild(linha);
+}
 
-//local storage
-/*
-JSON.stringify() para salvar objetos/arrays.
-JSON.parse() para ler os dados salvos e transformá-los novamente em objetos.
-Verificar se o dado já existe antes de sobrescrever (|| [] garante que não quebre se for null).
-*/
+// Remover tarefa do Local Storage
+function removerTarefaStorage(valorTarefa) {
+  let tarefas = JSON.parse(localStorage.getItem("listaTarefas")) || [];
+  tarefas = tarefas.filter(t => t.valorTarefa !== valorTarefa);
+  localStorage.setItem("listaTarefas", JSON.stringify(tarefas));
+}
